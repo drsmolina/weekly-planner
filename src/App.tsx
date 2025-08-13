@@ -18,6 +18,7 @@ import {
   STORAGE_KEY,
   STORAGE_TEMPLATE_KEY,
   STORAGE_AUTOSEED_KEY,
+  STORAGE_NOTES_KEY,
   load,
   save,
 } from "./storage";
@@ -66,6 +67,7 @@ export default function App() {
   const [baseTemplate, setBaseTemplate] = useState<WeekData>(() =>
     load(STORAGE_TEMPLATE_KEY, makeDefaultTemplate())
   );
+  const [notes, setNotes] = useState<string>(() => load(STORAGE_NOTES_KEY, ""));
   useEffect(() => {
     if (!data[wkKey]) {
       const seeded = autoSeed ? JSON.parse(JSON.stringify(baseTemplate)) : makeEmptyWeek();
@@ -77,6 +79,7 @@ export default function App() {
   useEffect(() => save(STORAGE_KEY, data), [data]);
   useEffect(() => save(STORAGE_TEMPLATE_KEY, baseTemplate), [baseTemplate]);
   useEffect(() => save(STORAGE_AUTOSEED_KEY, autoSeed), [autoSeed]);
+  useEffect(() => save(STORAGE_NOTES_KEY, notes), [notes]);
 
   const weekData: WeekData = data[wkKey] || makeEmptyWeek();
 
@@ -236,8 +239,13 @@ export default function App() {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-600">
-          Notes: caffeine cutoff ≈ 04:00; protein 1.6–2.2 g/kg/day; hydrate 2–3 L/day; keep bedroom cool & dark for day sleep.
+        <div className="mt-4">
+          <textarea
+            className="w-full rounded-md border p-2 text-sm"
+            placeholder="Notes / reminders"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
         </div>
       </div>
     </div>
