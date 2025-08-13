@@ -1,6 +1,8 @@
-import { useAutoFit } from "./hooks/useAutoFit"; // adjust path if different
+import React, { useRef } from "react";
+import { Cell } from "./types";
+import { useAutoFit } from "./hooks/useAutoFit"; // Keep the reusable hook
 
-function PlannerCell({
+export function PlannerCell({
   value,
   onChange,
   onToggleDone,
@@ -13,15 +15,24 @@ function PlannerCell({
   const text = value?.text ?? "";
   const done = value?.done ?? false;
 
-  // Auto-fit: min..max font size inside the 30-min block (12px..16px here)
-  useAutoFit(ref, [text], { min: 10, max: 16, step: 1, lineHeight: 1.15, paddingPx: 2 });
+  // Auto-fit text to block size
+  useAutoFit(ref, [text], {
+    min: 10,
+    max: 16,
+    step: 1,
+    lineHeight: 1.15,
+    paddingPx: 2,
+  });
 
   return (
-    <div className="group relative h-12 border-l border-b border-gray-200 p-1">
+    <div className="group relative h-12 border-l border-b border-gray-200 p-1 overflow-hidden">
+      {/* Done toggle */}
       <div className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition">
         <button
           className={`h-5 w-5 grid place-items-center rounded-full border ${
-            done ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-gray-500"
+            done
+              ? "bg-emerald-600 text-white border-emerald-600"
+              : "bg-white text-gray-500"
           }`}
           title={done ? "Mark as not done" : "Mark done"}
           onClick={onToggleDone}
@@ -30,6 +41,7 @@ function PlannerCell({
         </button>
       </div>
 
+      {/* Editable content */}
       <div
         ref={ref}
         contentEditable
@@ -37,7 +49,9 @@ function PlannerCell({
         className={`h-full w-full outline-none leading-snug whitespace-pre-wrap break-words ${
           done ? "line-through text-gray-400" : "text-gray-800"
         }`}
-        onBlur={(e) => onChange({ text: e.currentTarget.innerText.trim(), done })}
+        onBlur={(e) =>
+          onChange({ text: e.currentTarget.innerText.trim(), done })
+        }
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
