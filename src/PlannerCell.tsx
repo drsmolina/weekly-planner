@@ -1,7 +1,6 @@
-import React, { useRef } from "react";
-import { Cell } from "./types";
+import { useAutoFit } from "./hooks/useAutoFit"; // adjust path if different
 
-export function PlannerCell({
+function PlannerCell({
   value,
   onChange,
   onToggleDone,
@@ -13,8 +12,9 @@ export function PlannerCell({
   const ref = useRef<HTMLDivElement>(null);
   const text = value?.text ?? "";
   const done = value?.done ?? false;
-  const len = text.length;
-  const sizeClass = len < 40 ? "text-base" : len < 120 ? "text-sm" : "text-xs";
+
+  // Auto-fit: min..max font size inside the 30-min block (12px..16px here)
+  useAutoFit(ref, [text], { min: 10, max: 16, step: 1, lineHeight: 1.15, paddingPx: 2 });
 
   return (
     <div className="group relative h-12 border-l border-b border-gray-200 p-1">
@@ -29,11 +29,12 @@ export function PlannerCell({
           ✓
         </button>
       </div>
+
       <div
         ref={ref}
         contentEditable
         suppressContentEditableWarning
-        className={`h-full w-full outline-none leading-snug whitespace-pre-wrap ${sizeClass} ${
+        className={`h-full w-full outline-none leading-snug whitespace-pre-wrap break-words ${
           done ? "line-through text-gray-400" : "text-gray-800"
         }`}
         onBlur={(e) => onChange({ text: e.currentTarget.innerText.trim(), done })}
