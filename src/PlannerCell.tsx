@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { Cell } from "./types";
-import { useAutoFit } from "./src/hooks/useAutoFit"; // Keep the reusable hook
+import { useAutoFit } from "./hooks/useAutoFit"; // Keep the reusable hook
 
 export function PlannerCell({
   value,

@@ -7,6 +7,7 @@ import {
   TZ_NY,
   fmtISO,
   addDays,
+  parseISODateLocal,
   startOfWeekInTZ,
   TIMES,
   keyHM,
@@ -33,14 +34,14 @@ export default function App() {
   const weekStartLabel = useMemo(
     () =>
       startOfWeekInTZ(
-        new Date(dateInput + "T00:00:00"),
+        parseISODateLocal(dateInput),
         viewTZ === "EST" ? TZ_NY : TZ_PH
       ),
     [dateInput, viewTZ]
   );
 
   const weekStartLocal = useMemo(
-    () => startOfWeekInTZ(new Date(dateInput + "T00:00:00"), localTZ),
+    () => startOfWeekInTZ(parseISODateLocal(dateInput), localTZ),
     [dateInput, localTZ]
   );
   const wkKey = fmtISO(weekStartLocal);
@@ -138,7 +139,7 @@ export default function App() {
                 min={fmtISO(minDate)}
                 max={fmtISO(maxDate)}
                 onChange={(e) => {
-                  const next = startOfWeekInTZ(new Date(e.target.value + "T00:00:00"), localTZ);
+                  const next = startOfWeekInTZ(parseISODateLocal(e.target.value), localTZ);
                   if (next < minDate || next > maxDate) return;
                   setDateInput(fmtISO(next));
                 }}

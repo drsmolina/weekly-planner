@@ -7,6 +7,11 @@ export function fmtISO(d: Date) {
   const local = new Date(d.getTime() - offset * 60000);
   return local.toISOString().slice(0, 10);
 }
+
+export function parseISODateLocal(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 export function addDays(d: Date, n: number) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
