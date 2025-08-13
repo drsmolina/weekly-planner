@@ -23,23 +23,35 @@ import {
 } from "./storage";
 
 export default function App() {
-  const [dateInput, setDateInput] = useState<string>(fmtISO(new Date()));
+  const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [dateInput, setDateInput] = useState<string>(
+    fmtISO(startOfWeekInTZ(new Date(), localTZ))
+  );
   const [viewTZ, setViewTZ] = useState<"PH" | "EST">("EST");
 
   const weekStartLabel = useMemo(
-    () => startOfWeekInTZ(new Date(dateInput + "T00:00:00"), viewTZ === "EST" ? TZ_NY : TZ_PH),
+    () =>
+      startOfWeekInTZ(
+        new Date(dateInput + "T00:00:00"),
+        viewTZ === "EST" ? TZ_NY : TZ_PH
+      ),
     [dateInput, viewTZ]
   );
 
   const weekStartLocal = useMemo(
-    () =>
-      startOfWeekInTZ(
-        new Date(dateInput + "T00:00:00"),
-        Intl.DateTimeFormat().resolvedOptions().timeZone
-      ),
-    [dateInput]
+    () => startOfWeekInTZ(new Date(dateInput + "T00:00:00"), localTZ),
+    [dateInput, localTZ]
   );
   const wkKey = fmtISO(weekStartLocal);
+
+  const todayStart = useMemo(
+    () => startOfWeekInTZ(new Date(), localTZ),
+    [localTZ]
+  );
+  const minDate = useMemo(() => addDays(todayStart, -14), [todayStart]);
+  const maxDate = useMemo(() => addDays(todayStart, 14), [todayStart]);
+  const atMin = weekStartLocal <= minDate;
+  const atMax = weekStartLocal >= maxDate;
 
   const tzDeltaMin = useMemo(() => {
     if (viewTZ === "PH") return 0;
@@ -87,9 +99,9 @@ export default function App() {
   }
 
   function shiftWeek(delta: number) {
-    const d = new Date(dateInput + "T00:00:00");
-    d.setDate(d.getDate() + delta * 7);
-    setDateInput(fmtISO(d));
+    const target = addDays(weekStartLocal, delta * 7);
+    if (target < minDate || target > maxDate) return;
+    setDateInput(fmtISO(target));
   }
   function resetWeekToTemplate() {
     setData((prev) => ({ ...prev, [wkKey]: JSON.parse(JSON.stringify(baseTemplate)) }));
@@ -108,7 +120,11 @@ export default function App() {
         {/* Controls */}
         <div className="mt-4 rounded-xl border bg-white shadow-sm p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
-            <button className="rounded-md border px-3 py-1 text-sm" onClick={() => shiftWeek(-1)}>
+            <button
+              className="rounded-md border px-3 py-1 text-sm"
+              onClick={() => shiftWeek(-1)}
+              disabled={atMin}
+            >
               ← Prev week
             </button>
             <div className="flex items-center gap-2">
@@ -116,11 +132,21 @@ export default function App() {
               <input
                 type="date"
                 value={fmtISO(weekStartLabel)}
-                onChange={(e) => setDateInput(e.target.value)}
+                min={fmtISO(minDate)}
+                max={fmtISO(maxDate)}
+                onChange={(e) => {
+                  const next = startOfWeekInTZ(new Date(e.target.value + "T00:00:00"), localTZ);
+                  if (next < minDate || next > maxDate) return;
+                  setDateInput(fmtISO(next));
+                }}
                 className="rounded-md border px-2 py-1 text-sm"
               />
             </div>
-            <button className="rounded-md border px-3 py-1 text-sm" onClick={() => shiftWeek(1)}>
+            <button
+              className="rounded-md border px-3 py-1 text-sm"
+              onClick={() => shiftWeek(1)}
+              disabled={atMax}
+            >
               Next week →
             </button>
 
