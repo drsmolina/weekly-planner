@@ -3,7 +3,9 @@ export const TZ_PH = "Asia/Manila";
 export const TZ_NY = "America/New_York";
 
 export function fmtISO(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const offset = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 10);
 }
 export function addDays(d: Date, n: number) {
   const x = new Date(d);
