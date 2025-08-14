@@ -11,8 +11,7 @@ import {
   startOfWeekInTZ,
   TIMES,
   keyHM,
-  tzOffsetMinutes,
-  shiftSlot,
+  getWeekNumber,
 } from "./utils";
 import { makeDefaultTemplate, makeEmptyWeek } from "./defaults";
 import {
@@ -55,13 +54,14 @@ export default function App() {
   const atMin = weekStartLocal <= minDate;
   const atMax = weekStartLocal >= maxDate;
 
-  const tzDeltaMin = useMemo(() => {
-    if (viewTZ === "PH") return 0;
-    const ref = new Date(weekStartLabel);
-    const ny = tzOffsetMinutes(ref, TZ_NY);
-    const ph = tzOffsetMinutes(ref, TZ_PH);
-    return ny - ph;
-  }, [viewTZ, weekStartLabel]);
+  const weekOptions = useMemo(() => {
+    const opts: { value: string; label: string }[] = [];
+    for (let d = new Date(minDate); d <= maxDate; d = addDays(d, 7)) {
+      const start = startOfWeekInTZ(d, localTZ);
+      opts.push({ value: fmtISO(start), label: `Week ${getWeekNumber(start)}` });
+    }
+    return opts;
+  }, [minDate, maxDate, localTZ]);
 
   const [data, setData] = useState<Record<string, WeekData>>(() => load(STORAGE_KEY, {}));
   const [autoSeed, setAutoSeed] = useState<boolean>(() => load(STORAGE_AUTOSEED_KEY, true));
@@ -85,21 +85,19 @@ export default function App() {
   const weekData: WeekData = data[wkKey] || makeEmptyWeek();
 
   function setCell(dayIdx: number, timeKey: string, cell: Cell) {
-    const target = tzDeltaMin === 0 ? { dayIdx, timeKey } : shiftSlot(dayIdx, timeKey, -tzDeltaMin);
     setData((prev) => {
       const next = { ...prev };
       const w = { ...(next[wkKey] || makeEmptyWeek()) } as WeekData;
-      const d = { ...(w[String(target.dayIdx)] || {}) } as Record<string, Cell>;
-      d[target.timeKey] = cell;
-      w[String(target.dayIdx)] = d;
+      const d = { ...(w[String(dayIdx)] || {}) } as Record<string, Cell>;
+      d[timeKey] = cell;
+      w[String(dayIdx)] = d;
       next[wkKey] = w;
       return next;
     });
   }
   function toggleCellDone(dayIdx: number, timeKey: string) {
-    const source = tzDeltaMin === 0 ? { dayIdx, timeKey } : shiftSlot(dayIdx, timeKey, -tzDeltaMin);
-    const cur = weekData[String(source.dayIdx)]?.[source.timeKey];
-    setCell(source.dayIdx, source.timeKey, { text: cur?.text || "", done: !(cur?.done ?? false) });
+    const cur = weekData[String(dayIdx)]?.[timeKey];
+    setCell(dayIdx, timeKey, { text: cur?.text || "", done: !(cur?.done ?? false) });
   }
 
   function shiftWeek(delta: number) {
@@ -132,19 +130,18 @@ export default function App() {
               ← Prev week
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Week of</span>
-              <input
-                type="date"
-                value={fmtISO(weekStartLabel)}
-                min={fmtISO(minDate)}
-                max={fmtISO(maxDate)}
-                onChange={(e) => {
-                  const next = startOfWeekInTZ(parseISODateLocal(e.target.value), localTZ);
-                  if (next < minDate || next > maxDate) return;
-                  setDateInput(fmtISO(next));
-                }}
+              <span className="text-sm text-gray-600">Week</span>
+              <select
+                value={fmtISO(weekStartLocal)}
+                onChange={(e) => setDateInput(e.target.value)}
                 className="rounded-md border px-2 py-1 text-sm"
-              />
+              >
+                {weekOptions.map((w) => (
+                  <option key={w.value} value={w.value}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
               className="rounded-md border px-3 py-1 text-sm"
@@ -209,7 +206,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* Time rows (30-min). When viewing in EST, each visible slot is mapped back by −tzDeltaMin */}
             {TIMES.map(({ h, m }) => (
               <div key={`${h}:${m}`} className="grid" style={{ gridTemplateColumns: `80px repeat(7, minmax(0, 1fr))` }}>
                 <div
@@ -221,11 +217,7 @@ export default function App() {
                 </div>
                 {headerDays.map((_, di) => {
                   const displayedKey = keyHM(h, m);
-                  const source =
-                    tzDeltaMin === 0
-                      ? { dayIdx: di, timeKey: displayedKey }
-                      : shiftSlot(di, displayedKey, -tzDeltaMin);
-                  const cell = weekData[String(source.dayIdx)]?.[source.timeKey];
+                  const cell = weekData[String(di)]?.[displayedKey];
                   return (
                     <PlannerCell
                       key={`${di}-${displayedKey}`}
