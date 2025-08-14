@@ -190,9 +190,9 @@ export default function App() {
         {/* Grid */}
         <div className="mt-4 overflow-x-auto rounded-xl border bg-white shadow-sm">
           <div className="min-w-[1040px]">
-            {/* Header Row (dates rendered in chosen TZ) */}
-            <div className="grid" style={{ gridTemplateColumns: `80px repeat(7, minmax(0, 1fr))` }}>
-              <div className="h-12 border-b bg-gray-50" />
+            {/* Header Row (dates rendered in chosen TZ) - Sticky */}
+            <div className="sticky top-0 z-10 grid" style={{ gridTemplateColumns: `80px repeat(7, minmax(0, 1fr))` }}>
+              <div className="sticky left-0 z-20 h-12 border-b bg-gray-50" />
               {headerDays.map((d, i) => (
                 <div key={i} className="h-12 border-b bg-gray-50 px-3 flex items-center">
                   <div className="font-semibold">
@@ -209,7 +209,7 @@ export default function App() {
             {TIMES.map(({ h, m }) => (
               <div key={`${h}:${m}`} className="grid" style={{ gridTemplateColumns: `80px repeat(7, minmax(0, 1fr))` }}>
                 <div
-                  className={`h-12 border-b border-r px-3 py-2 text-sm ${
+                  className={`sticky left-0 z-10 h-12 border-b border-r px-3 py-2 text-sm ${
                     m === 0 ? "bg-gray-50 text-gray-700" : "bg-gray-50 text-gray-400"
                   } flex items-center`}
                 >
