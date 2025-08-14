@@ -28,6 +28,14 @@ export function startOfWeekInTZ(date: Date, timeZone: string) {
   return out;
 }
 
+export function getWeekNumber(date: Date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
 export const TIMES: { h: number; m: number }[] = [];
 for (let h = 5; h <= 23; h++) {
   TIMES.push({ h, m: 0 });
