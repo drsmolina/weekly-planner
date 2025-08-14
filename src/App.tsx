@@ -30,15 +30,6 @@ export default function App() {
   );
   const [viewTZ, setViewTZ] = useState<"PH" | "EST">("EST");
 
-  const weekStartLabel = useMemo(
-    () =>
-      startOfWeekInTZ(
-        parseISODateLocal(dateInput),
-        viewTZ === "EST" ? TZ_NY : TZ_PH
-      ),
-    [dateInput, viewTZ]
-  );
-
   const weekStartLocal = useMemo(
     () => startOfWeekInTZ(parseISODateLocal(dateInput), localTZ),
     [dateInput, localTZ]
@@ -112,7 +103,10 @@ export default function App() {
     setBaseTemplate(JSON.parse(JSON.stringify(weekData)));
   }
 
-  const headerDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartLabel, i));
+  const headerDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStartLocal, i)),
+    [weekStartLocal]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
