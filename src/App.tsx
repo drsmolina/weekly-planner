@@ -182,7 +182,7 @@ export default function App() {
         </div>
 
         {/* Grid */}
-        <div className="mt-4 overflow-x-auto rounded-xl border bg-white shadow-sm">
+        <div className="mt-4 overflow-x-auto overflow-y-auto max-h-[600px] rounded-xl border bg-white shadow-sm">
           <div className="min-w-[1040px]">
             {/* Header Row (dates rendered in chosen TZ) - Sticky */}
             <div className="sticky top-0 z-10 grid" style={{ gridTemplateColumns: `80px repeat(7, minmax(0, 1fr))` }}>
